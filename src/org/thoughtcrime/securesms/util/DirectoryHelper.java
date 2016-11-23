@@ -404,19 +404,22 @@ public class DirectoryHelper {
       }
     } catch (InterruptedException e) {
       Log.w(TAG, "Contact discovery batch was interrupted.", e);
-      accountManager.reportContactDiscoveryServiceUnexpectedError(buildErrorReason(e));
+      //TODO accountManager.reportContactDiscoveryServiceUnexpectedError(buildErrorReason(e));
+      accountManager.reportContactDiscoveryServiceUnexpectedError();
       return Optional.absent();
     } catch (ExecutionException e) {
       if (isAttestationError(e.getCause())) {
         Log.w(TAG, "Failed during attestation.", e);
-        accountManager.reportContactDiscoveryServiceAttestationError(buildErrorReason(e.getCause()));
+        //TODO accountManager.reportContactDiscoveryServiceAttestationError(buildErrorReason(e.getCause()));
+        accountManager.reportContactDiscoveryServiceUnexpectedError();
         return Optional.absent();
       } else if (e.getCause() instanceof PushNetworkException) {
         Log.w(TAG, "Failed due to poor network.", e);
         return Optional.absent();
       } else {
         Log.w(TAG, "Failed for an unknown reason.", e);
-        accountManager.reportContactDiscoveryServiceUnexpectedError(buildErrorReason(e.getCause()));
+        //TODO accountManager.reportContactDiscoveryServiceUnexpectedError(buildErrorReason(e.getCause()));
+        accountManager.reportContactDiscoveryServiceUnexpectedError();
         return Optional.absent();
       }
     }

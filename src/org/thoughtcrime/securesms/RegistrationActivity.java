@@ -89,7 +89,6 @@ import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.libsignal.util.KeyHelper;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-import org.whispersystems.signalservice.api.push.exceptions.CaptchaRequiredException;
 import org.whispersystems.signalservice.api.push.exceptions.RateLimitException;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
@@ -237,7 +236,7 @@ public class RegistrationActivity extends BaseActionBarActivity implements Verif
     if (getIntent().getBooleanExtra(RE_REGISTRATION_EXTRA, false)) {
       skipButton.setVisibility(View.VISIBLE);
     } else {
-      skipButton.setVisibility(View.INVISIBLE);
+      skipButton.setVisibility(View.VISIBLE);
     }
 
     this.keyboard.setOnKeyPressListener(key -> {
@@ -492,8 +491,10 @@ public class RegistrationActivity extends BaseActionBarActivity implements Verif
             fcmToken = Optional.absent();
           }
 
-          accountManager = AccountManagerFactory.createManager(RegistrationActivity.this, e164number, password);
-          accountManager.requestSmsVerificationCode(smsRetrieverSupported, registrationState.captchaToken);
+          //accountManager = AccountManagerFactory.createManager(RegistrationActivity.this, e164number, password);
+          //accountManager.requestSmsVerificationCode(smsRetrieverSupported, registrationState.captchaToken);
+          accountManager = AccountManagerFactory.createManager(RegistrationActivity.this, e164number, password, 1);
+          accountManager.requestSmsVerificationCode(smsRetrieverSupported);
 
           return new VerificationRequestResult(password, fcmToken, Optional.absent());
         } catch (IOException e) {
@@ -503,9 +504,9 @@ public class RegistrationActivity extends BaseActionBarActivity implements Verif
       }
 
       protected void onPostExecute(@NonNull VerificationRequestResult result) {
-        if (result.exception.isPresent() && result.exception.get() instanceof CaptchaRequiredException) {
+        /*TODO if (result.exception.isPresent() && result.exception.get() instanceof CaptchaRequiredException) {
           requestCaptcha(true);
-        } else if (result.exception.isPresent()) {
+        } else */if (result.exception.isPresent()) {
           Toast.makeText(RegistrationActivity.this, R.string.RegistrationActivity_unable_to_connect_to_service, Toast.LENGTH_LONG).show();
           createButton.setIndeterminateProgressMode(false);
           createButton.setProgress(0);
@@ -676,9 +677,10 @@ public class RegistrationActivity extends BaseActionBarActivity implements Verif
         @Override
         protected Void doInBackground(Void... voids) {
           try {
-            accountManager.requestVoiceVerificationCode(Locale.getDefault(), registrationState.captchaToken);
-          } catch (CaptchaRequiredException e) {
-            requestCaptcha(false);
+            //TODO accountManager.requestVoiceVerificationCode(Locale.getDefault(), registrationState.captchaToken);
+            accountManager.requestVoiceVerificationCode(Locale.getDefault());
+          //} catch (CaptchaRequiredException e) {
+          //  requestCaptcha(false);
           } catch (IOException e) {
             Log.w(TAG, e);
           }
@@ -918,14 +920,9 @@ public class RegistrationActivity extends BaseActionBarActivity implements Verif
   }
 
   private void handleCancel() {
-    TextSecurePreferences.setPromptedPushRegistration(RegistrationActivity.this, true);
-    Intent nextIntent = getIntent().getParcelableExtra("next_intent");
-
-    if (nextIntent == null) {
-      nextIntent = new Intent(RegistrationActivity.this, ConversationListActivity.class);
-    }
-
-    startActivity(nextIntent);
+    final RegistrationActivity self = RegistrationActivity.this;
+    Intent intent = new Intent(self,LinkingProgressActivity.class);
+    startActivity(intent);
     finish();
   }
 
